@@ -88,6 +88,7 @@ export const seedPinecone = async () => {
 			},
 			waitUntilReady: true,
 		});
+
 		console.log(`Index '${INDEX_NAME}' created successfully.`);
 	} else {
 		console.log(`Index '${INDEX_NAME}' already exists. Skipping creation.`);
