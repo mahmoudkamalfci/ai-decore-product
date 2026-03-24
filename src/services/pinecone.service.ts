@@ -75,7 +75,7 @@ export const seedPinecone = async () => {
 	}
 
 	const indexExists = indexList?.indexes?.some(
-		(idx) => idx.name === INDEX_NAME,
+		(idx: { name: string; }) => idx.name === INDEX_NAME,
 	);
 
 	if (!indexExists) {
