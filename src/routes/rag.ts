@@ -1,9 +1,9 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { askQuestion } from "../services/rag.service";
 
 const router = Router();
 
-router.post("/ask", async (req, res) => {
+router.post("/ask", async (req: Request, res: Response): Promise<void> => {
   try {
     const { question } = req.body;
     if (!question) {

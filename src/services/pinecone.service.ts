@@ -1,7 +1,7 @@
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { PineconeStore } from "@langchain/pinecone";
 import type { IndexList } from "@pinecone-database/pinecone";
 import { pinecone } from "../config/pinecone";
-import { PineconeStore } from "@langchain/pinecone";
-import { OpenAIEmbeddings } from "@langchain/openai";
 
 export const INDEX_NAME = "developer-rag-index";
 export const NAMESPACE = "rag-namespace";
@@ -90,6 +90,8 @@ export const seedPinecone = async () => {
 					region: "us-east-1",
 				},
 			},
+			waitUntilReady: true,
+			suppressConflicts: true,
 		});
 
 		console.log(`Index '${INDEX_NAME}' created successfully.`);
