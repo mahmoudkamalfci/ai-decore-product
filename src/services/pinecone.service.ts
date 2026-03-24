@@ -1,8 +1,10 @@
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { PineconeStore } from "@langchain/pinecone";
 import type { IndexList } from "@pinecone-database/pinecone";
 import { pinecone } from "../config/pinecone";
 
-export const INDEX_NAME = "developer-quickstart-js";
-export const NAMESPACE = "ns1";
+export const INDEX_NAME = "developer-rag-index";
+export const NAMESPACE = "rag-namespace";
 
 // Note: ID changed from `_id` to `id` properly adhering to Pinecone's API formats.
 export const records = [
@@ -78,15 +80,18 @@ export const seedPinecone = async () => {
 
 	if (!indexExists) {
 		console.log(`Creating index '${INDEX_NAME}'...`);
-		await pinecone.createIndexForModel({
+		await pinecone.createIndex({
 			name: INDEX_NAME,
-			cloud: "aws",
-			region: "us-east-1",
-			embed: {
-				model: "llama-text-embed-v2",
-				fieldMap: { text: "chunk_text" },
+			dimension: 1536, // OpenAI dimension
+			metric: "cosine",
+			spec: {
+				serverless: {
+					cloud: "aws",
+					region: "us-east-1",
+				},
 			},
 			waitUntilReady: true,
+			suppressConflicts: true,
 		});
 
 		console.log(`Index '${INDEX_NAME}' created successfully.`);
@@ -94,13 +99,16 @@ export const seedPinecone = async () => {
 		console.log(`Index '${INDEX_NAME}' already exists. Skipping creation.`);
 	}
 
-	// Target the integrated index
-	const index = pinecone.index(INDEX_NAME).namespace(NAMESPACE);
-
 	console.log(
 		`Seeding ${records.length} records into namespace '${NAMESPACE}'...`,
 	);
-	// Note: For integrated indexes, passing an object with 'records' to satisfy types
-	await index.upsertRecords({ records });
+	const docs = records.map((r) => ({
+		pageContent: r.chunk_text,
+		metadata: { category: r.category, id: r.id },
+	}));
+	await PineconeStore.fromDocuments(docs, new OpenAIEmbeddings(), {
+		pineconeIndex: pinecone.index(INDEX_NAME),
+		namespace: NAMESPACE,
+	});
 	console.log("Records seeded successfully.");
 };
